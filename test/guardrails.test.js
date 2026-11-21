@@ -325,6 +325,41 @@ describe("releaseready-guardrails rules", () => {
     ]);
   });
 
+  test("suppressions need a reason; process.argv indexing fails", async () => {
+    const hits = await rulesHit({
+      "src/a.ts": [
+        "// eslint-disable-next-line no-console",
+        "// eslint-disable-next-line no-console -- CLI prints results",
+        "// eslint-disable-next-line no-console -- a CLI prints results",
+        "// @ts-ignore",
+        "// @ts-expect-error vendor typings are wrong",
+        "// Vendor typings omit this field.",
+        "// @ts-ignore",
+        "/* eslint-disable no-console */",
+        "const file = process.argv[2];",
+        "const rest = process.argv.slice(2);",
+        "",
+      ].join("\n"),
+    });
+    assert.deepEqual(hits.sort(), [
+      "argv-index src/a.ts:9",
+      "suppression-without-reason src/a.ts:1",
+      "suppression-without-reason src/a.ts:4",
+      "suppression-without-reason src/a.ts:8",
+    ]);
+  });
+
+  test("suppression-without-reason and argv-index: an allow entry needs a reason", async () => {
+    for (const rule of ["suppression-without-reason", "argv-index"]) {
+      const noReason = await repo({
+        "releaseready-guardrails.json": JSON.stringify({
+          allow: [{ rule, path: "src/a.ts" }],
+        }),
+      });
+      assert.throws(() => loadConfig(noReason), /reason/);
+    }
+  });
+
   test("scanner patterns: runtime assert and literal /tmp outside tests", async () => {
     const hits = await rulesHit({
       "control/run.py":

@@ -52,6 +52,24 @@
       "path": "test/guardrails.test.js",
       "max": 1,
       "reason": "The tests feed deliberate luminance maths to the copied-wcag-contrast rule"
+    },
+    {
+      "rule": "suppression-without-reason",
+      "path": "test/fixtures/node/suppressions.ts",
+      "max": 4,
+      "reason": "The ESLint tests lint this fixture to prove unexplained suppressions fail"
+    },
+    {
+      "rule": "suppression-without-reason",
+      "path": "test/guardrails.test.js",
+      "max": 4,
+      "reason": "The tests feed deliberate unexplained suppressions to the suppression-without-reason rule"
+    },
+    {
+      "rule": "argv-index",
+      "path": "test/guardrails.test.js",
+      "max": 1,
+      "reason": "The tests feed a deliberate process.argv[2] to the argv-index rule"
     }
   ]
 }

@@ -33,7 +33,9 @@
               "readme-dated-history",
               "tracked-ds-store",
               "tracked-build-output",
-              "oversized-source-file"
+              "oversized-source-file",
+              "suppression-without-reason",
+              "argv-index"
             ]
           },
           "path": { "type": "string", "minLength": 1 },

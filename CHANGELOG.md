@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+New error-level rules, so the next release is a major one. Measured with `--static` on `origin/main` of every consumer repo on 21 Nov 2026, after each repo's own allowlist:
+
+- `suppression-without-reason`: 0 everywhere (the ESLint comments plugin already enforces it for `eslint-disable`; this also covers `@ts-ignore` / `@ts-expect-error`).
+- `argv-index`: ReleaseReady 42, frontend-ui 13, universal-api-framework 5, releaseready-product-tests 4, test-data-management 3, test-management 3, universal-playwright-framework 3, universal-appium2-framework 1, the rest 0.
+
+- `releaseready-guardrails` (RRDSCRUM-436): new rule `suppression-without-reason` fails on `eslint-disable*`, `@ts-ignore` or `@ts-expect-error` with no reason (`-- reason` for ESLint, text after the TS directive, or an explaining comment on the line above). New rule `argv-index` fails on `process.argv[<n>]`; use `node:util` `parseArgs`. Both can be allowlisted with a reason.
+
 ## 3.0.0 (2026-11-21)
 
 Major release: it adds error-level rules, so a repo moving from 2.x can fail `releaseready-guardrails` until it fixes or allowlists the new findings. Measured with `--static` on `origin/main` of every consumer repo on 21 Nov 2026, after each repo's own allowlist:

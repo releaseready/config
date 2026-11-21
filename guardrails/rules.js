@@ -565,6 +565,59 @@ function scannerPatterns(repo) {
 }
 
 /**
+ * Nov 2026 audit: a suppression or a hand-indexed `process.argv` keeps coming back.
+ * A suppression is fine with a reason (`-- why` for ESLint, text after `@ts-expect-error`, or a comment on the line above).
+ *
+ * @type {Rule}
+ */
+function suppressionsAndArgv(repo) {
+  const jsGlob = "**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}";
+  const directive =
+    /(?:\/\/|\/\*+)\s*(eslint-disable(?:-next-line|-line)?|@ts-ignore|@ts-expect-error)(?![\w-])(.*)$/;
+  /** @type {Finding[]} */
+  const findings = [];
+  for (const path of repo.paths.filter(
+    (p) => matches(p, jsGlob) && !matches(p, skillCopies),
+  )) {
+    const lines = repo.read(path).split("\n");
+    lines.forEach((text, index) => {
+      const found = directive.exec(text);
+      if (found) {
+        const rest = (found[2] ?? "").replace(/\*\/.*$/, "");
+        const inline = found[1]?.startsWith("eslint")
+          ? /--\s+.*[A-Za-z]{3}/.test(rest)
+          : /[A-Za-z]{3}/.test(rest);
+        const above = (lines[index - 1] ?? "").trim();
+        const explained =
+          /^(?:\/\/|\/\*|\*)/.test(above) &&
+          !directive.test(above) &&
+          /[A-Za-z]{3}/.test(above);
+        if (!inline && !explained) {
+          findings.push({
+            rule: "suppression-without-reason",
+            path,
+            line: index + 1,
+            message: `${found[1]} without a reason: fix the code, or say why (\`-- reason\` for eslint-disable, text after @ts-ignore / @ts-expect-error)`,
+            text,
+          });
+        }
+      }
+      if (/\bprocess\.argv\s*\[\s*\d+\s*\]/.test(text)) {
+        findings.push({
+          rule: "argv-index",
+          path,
+          line: index + 1,
+          message:
+            "process.argv[<n>] indexing: parse arguments with node:util parseArgs (or commander / yargs)",
+          text,
+        });
+      }
+    });
+  }
+  return findings;
+}
+
+/**
  * Standard 1: RR-03, RR-04, TM-11, TM-12, UPF-01, UPF-02, FUI-17. Deprecated, legacy and compatibility code.
  *
  * @type {Rule}
@@ -783,6 +836,7 @@ export const rules = [
   copiedCode,
   legacyMarkers,
   scannerPatterns,
+  suppressionsAndArgv,
   skippedTests,
   eslintConfigOverrides,
   readmeHistory,

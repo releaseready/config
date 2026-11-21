@@ -98,41 +98,43 @@ repo's `pr.yml`; the rest is on you.
 
 ## Smell → fix
 
-| If you are about to…                                                | Do this instead                                                                | Findings               |
-| ------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ---------------------- |
-| keep a v1 controller, reader or migration "for old data"            | delete it; nothing is in production                                            | RR-03, RR-04, TM-11/12 |
-| mark something `@deprecated` or name it `legacy…`                   | delete it and update its callers                                               | UPF-01, FUI-17         |
-| keep an export, starter or slice "someone might use"                | find the importer; none → delete                                               | TM-22, TDM-16, UA2-12  |
-| type `/^[A-Za-z0-9][A-Za-z0-9._:-]*$/`, a UUID or a 64-hex regex    | import from `@releaseready/test-management/schema/v1`                          | TM-07, TM-16, TDM-07   |
-| write `canonical()` / sort keys + sha256                            | `@releaseready/test-management/canonical/v1`                                   | TM-06, TDM-21          |
-| call `jwtVerify` / build a JWKS verifier                            | `@releaseready/test-management/identity/v1`                                    | TM-18, TDM-06          |
-| write `0.2126 * r + 0.7152 * g …` contrast maths                    | `colorjs.io` (`Color.contrast(…, "WCAG21")`)                                   | RPT-11                 |
-| copy seeded Dev emails or codes into constants                      | `@releaseready/test-data-management/dev-fixtures/v1`                           | TDM-14, RPT-05         |
-| copy a component, its CSS or a token value                          | `@releaseready/ui-web/v8`, `@releaseready/tokens`                              | RR-05, RR-06, FUI-11   |
-| copy a test tree "to mirror" another repo                           | one repo owns it; the other imports or runs it                                 | RPT-01                 |
-| pin `"x": "github:org/x#abc123"` or commit a `.tgz`                 | publish the package, depend on `^x.y.z`                                        | RR-15, TDM-12, UPF-16  |
-| alias `paths` to `node_modules/x/dist/...`                          | export the subpath from the package and import it                              | RR-14, RPT-08          |
-| run `npm run build --prefix node_modules/x`                         | consume the published build                                                    | TDM-11, RPT-15         |
-| write `argv[4]` or a flag-parsing loop                              | `node:util.parseArgs`                                                          | RR-10, UAF-05, UA2-02  |
-| write a retry/sleep loop in a Playwright test                       | `expect.poll`, `expect(...).toPass()`, web-first assertions                    | UPF-07                 |
-| hand-write a `fetch` client with response checks                    | generated OpenAPI client/types, Octokit or `gh`, or Ajv on the shared schema   | RR-07, RR-09, RPT-12   |
-| hand-write an XML, ZIP, YAML or CSV parser                          | a maintained library (`fast-xml-parser`, `yauzl`, `yaml`, `csv-parse`)         | TM-10, RR-08, UA2-14   |
-| validate a body with `typeof` chains                                | Ajv with the schema you already have                                           | TDM-08, TM-09          |
-| new `new Ajv({ strict: false })`                                    | the repo's one shared strict Ajv instance                                      | TM-05                  |
-| add `// eslint-disable-next-line` or `@ts-expect-error` to go green | fix the code; if truly needed, name the rule and add `-- reason`               | UPF-02, RR-12          |
-| set a rule to `"off"` or narrow the lint/format glob                | fix the code; a repo-level override needs a comment saying why                 | UPF-03, UA2-07, RR-11  |
-| use `any` or `as unknown as`                                        | a real type, a type guard or a schema-derived type                             | RR-12, UPF-18, RPT-21  |
-| `except Exception:` / `catch {}` that hides bugs                    | catch the specific error you expect and let the rest fail                      | OBS-09                 |
-| add `injectedFailure` / test knobs to a production module           | inject through the test, not the shipped API                                   | UPF-11                 |
-| write a second copy of a constant, limit or config                  | import the one definition; generate both outputs from one source               | UPF-10, UAF-06, OBS-06 |
-| add a README section "Status — 15 Nov 2026" or a ticket diary       | `CHANGELOG.md` / `docs/history/`; README says what the code does now           | TDM-20, RPT-17, TM-26  |
-| copy versions from package.json into docs                           | link to package.json                                                           | UA2-20, UAF-12         |
-| fix one finding and stop                                            | add a lint/guardrail rule, test or skill row for the whole class               | rule 9                 |
-| write `assert cond, msg` as a runtime check in Python               | `if not cond: raise SomeError(msg)`                                            | SonarCloud             |
-| write `"/tmp"` as a temp dir or cwd                                 | `tempfile.mkdtemp()` / `fs.mkdtemp()`, or `/var/empty` when nothing is written | SonarCloud             |
-| write a regex with `.+?` or nested quantifiers on tool output       | split and parse the text                                                       | SonarCloud             |
-| call `.sort()` on strings with no comparator                        | `.sort((a, b) => a.localeCompare(b))`                                          | SonarCloud             |
-| say "done" after only the tests you touched                         | run the repo's full check command, incl. `check:guardrails`                    | TM-01, UPF-20          |
+| If you are about to…                                                    | Do this instead                                                                | Findings                     |
+| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ---------------------------- |
+| keep a v1 controller, reader or migration "for old data"                | delete it; nothing is in production                                            | RR-03, RR-04, TM-11/12       |
+| mark something `@deprecated` or name it `legacy…`                       | delete it and update its callers                                               | UPF-01, FUI-17               |
+| keep an export, starter or slice "someone might use"                    | find the importer; none → delete                                               | TM-22, TDM-16, UA2-12        |
+| type `/^[A-Za-z0-9][A-Za-z0-9._:-]*$/`, a UUID or a 64-hex regex        | import from `@releaseready/test-management/schema/v1`                          | TM-07, TM-16, TDM-07         |
+| write `canonical()` / sort keys + sha256                                | `@releaseready/test-management/canonical/v1`                                   | TM-06, TDM-21                |
+| call `jwtVerify` / build a JWKS verifier                                | `@releaseready/test-management/identity/v1`                                    | TM-18, TDM-06                |
+| write `0.2126 * r + 0.7152 * g …` contrast maths                        | `colorjs.io` (`Color.contrast(…, "WCAG21")`)                                   | RPT-11                       |
+| copy seeded Dev emails or codes into constants                          | `@releaseready/test-data-management/dev-fixtures/v1`                           | TDM-14, RPT-05               |
+| copy a component, its CSS or a token value                              | `@releaseready/ui-web/v8`, `@releaseready/tokens`                              | RR-05, RR-06, FUI-11         |
+| copy a test tree "to mirror" another repo                               | one repo owns it; the other imports or runs it                                 | RPT-01                       |
+| pin `"x": "github:org/x#abc123"` or commit a `.tgz`                     | publish the package, depend on `^x.y.z`                                        | RR-15, TDM-12, UPF-16        |
+| alias `paths` to `node_modules/x/dist/...`                              | export the subpath from the package and import it                              | RR-14, RPT-08                |
+| run `npm run build --prefix node_modules/x`                             | consume the published build                                                    | TDM-11, RPT-15               |
+| write `argv[4]` or a flag-parsing loop                                  | `node:util.parseArgs`                                                          | RR-10, UAF-05, UA2-02        |
+| write a retry/sleep loop in a Playwright test                           | `expect.poll`, `expect(...).toPass()`, web-first assertions                    | UPF-07                       |
+| hand-write a `fetch` client with response checks                        | generated OpenAPI client/types, Octokit or `gh`, or Ajv on the shared schema   | RR-07, RR-09, RPT-12         |
+| hand-write an XML, ZIP, YAML or CSV parser                              | a maintained library (`fast-xml-parser`, `yauzl`, `yaml`, `csv-parse`)         | TM-10, RR-08, UA2-14         |
+| validate a body with `typeof` chains                                    | Ajv with the schema you already have                                           | TDM-08, TM-09                |
+| new `new Ajv({ strict: false })`                                        | the repo's one shared strict Ajv instance                                      | TM-05                        |
+| add `// eslint-disable-next-line` or `@ts-expect-error` to go green     | fix the code; if truly needed, name the rule and add `-- reason`               | UPF-02, RR-12                |
+| set a rule to `"off"` or narrow the lint/format glob                    | fix the code; a repo-level override needs a comment saying why                 | UPF-03, UA2-07, RR-11        |
+| use `any` or `as unknown as`                                            | a real type, a type guard or a schema-derived type                             | RR-12, UPF-18, RPT-21        |
+| `except Exception:` / `catch {}` that hides bugs                        | catch the specific error you expect and let the rest fail                      | OBS-09                       |
+| add `injectedFailure` / test knobs to a production module               | inject through the test, not the shipped API                                   | UPF-11                       |
+| write a second copy of a constant, limit or config                      | import the one definition; generate both outputs from one source               | UPF-10, UAF-06, OBS-06       |
+| add a README section "Status — 15 Nov 2026" or a ticket diary           | `CHANGELOG.md` / `docs/history/`; README says what the code does now           | TDM-20, RPT-17, TM-26        |
+| copy versions from package.json into docs                               | link to package.json                                                           | UA2-20, UAF-12               |
+| fix one finding and stop                                                | add a lint/guardrail rule, test or skill row for the whole class               | rule 9                       |
+| write `assert cond, msg` as a runtime check in Python                   | `if not cond: raise SomeError(msg)`                                            | SonarCloud                   |
+| write `"/tmp"` as a temp dir or cwd                                     | `tempfile.mkdtemp()` / `fs.mkdtemp()`, or `/var/empty` when nothing is written | SonarCloud                   |
+| write a regex with `.+?` or nested quantifiers on tool output           | split and parse the text                                                       | SonarCloud                   |
+| call `.sort()` on strings with no comparator                            | `.sort((a, b) => a.localeCompare(b))`                                          | SonarCloud                   |
+| add `eslint-disable`, `@ts-ignore` or `@ts-expect-error` with no reason | fix the code, or add `-- why` (ESLint) / text after the directive              | Nov 2026 audit, RRDSCRUM-436 |
+| read `process.argv[2]` by index                                         | `node:util` `parseArgs` (or commander / yargs)                                 | Nov 2026 audit, RRDSCRUM-436 |
+| say "done" after only the tests you touched                             | run the repo's full check command, incl. `check:guardrails`                    | TM-01, UPF-20                |
 
 ## What CI enforces
 

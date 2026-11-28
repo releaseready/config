@@ -54,7 +54,7 @@ module "runners" {
   instance_max_spot_price       = "0.05"
   runners_maximum_count         = var.max_runners
 
-  # The shared CI uses `gh` (changed-files classifier) and `jq`; GitHub-hosted images and the Mac have them, the bare Amazon
+  # The shared CI uses `gh` (changed-files classifier), `jq` and, for browser tests, Chromium's shared libraries; GitHub-hosted images and the Mac have them, the bare Amazon
   # Linux 2023 image does not (first spot run failed with exit 127). gh comes from GitHub's own signed dnf repository.
   # A subshell keeps strict mode from leaking into the module's own user-data script, which is pasted around this snippet.
   userdata_post_install = <<-EOT
@@ -64,6 +64,13 @@ module "runners" {
       dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
       dnf install -y --setopt=install_weak_deps=False gh
       gh --version
+      # Shared libraries Playwright's headless Chromium needs (the list is Playwright's own Ubuntu 24.04 dependency list mapped to
+      # Amazon Linux 2023 package names). `playwright install --with-deps` only supports apt, so it cannot add them. One package at
+      # a time, so a renamed package is logged and skipped instead of failing the whole install.
+      for pkg in alsa-lib atk at-spi2-atk cairo cups-libs dbus-libs glib2 libdrm libX11 libxcb libXcomposite libXdamage libXext \
+        libXfixes libxkbcommon libXrandr mesa-libgbm nspr nss pango fontconfig liberation-fonts; do
+        dnf install -y --setopt=install_weak_deps=False "$pkg" || echo "WARN: $pkg is not available"
+      done
     )
   EOT
   # -1 removes reserved concurrency: a new AWS account allows only 10 concurrent Lambda executions, and AWS requires 5 to stay

@@ -25,6 +25,11 @@ test("the runner image gets gh and jq, which the shared CI uses and Amazon Linux
   assert.match(main, /userdata_post_install\s*=\s*<<-EOT/);
   assert.match(main, /dnf install -y[^\n]*\bjq\b/);
   assert.match(main, /dnf install -y[^\n]*\bgh\b/);
+  // Playwright's headless Chromium failed on the bare image with "libatk-1.0.so.0: cannot open shared object file".
+  assert.match(
+    main,
+    /for pkg in [^\n]*\batk\b[\s\S]*?\bmesa-libgbm\b[\s\S]*?\bnss\b/,
+  );
   assert.match(main, /\(\s*\n\s*set -euo pipefail[\s\S]*?\n\s*\)\s*\n\s*EOT/);
 });
 

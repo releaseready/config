@@ -43,6 +43,11 @@ test("the image build is pinned to the same module release and bakes in what the
   // Playwright's headless Chromium failed on the bare image with "libatk-1.0.so.0: cannot open shared object file".
   assert.match(tools, /libatk1\.0-0t64[\s\S]*?libgbm1[\s\S]*?libnss3/);
   assert.match(tools, /sha256sum -c/);
+  // Packer cannot use CLI-login profiles ("No valid credential sources found"), so the script exports keys itself.
+  assert.match(
+    build,
+    /aws configure export-credentials --profile "\$AWS_PROFILE" --format env/,
+  );
   assert.match(tools, /hostedtoolcache\/node/);
   const template = read("image/github_agent.ubuntu-noble.pkr.hcl");
   assert.match(template, /ubuntu-noble-24\.04-amd64-server/);

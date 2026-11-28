@@ -1,7 +1,7 @@
 // Test classification: unit
 // Review status: Not Reviewed
 // Evidence: synthetic
-// Scope: the cost-cap settings in the CI spot-runner Terraform, read as text; it does not run Terraform or touch AWS.
+// Scope: the cost-cap and image settings in the CI spot-runner Terraform and Packer files, read as text; it does not run Terraform or Packer or touch AWS.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
@@ -21,11 +21,36 @@ test("the scale-up lambda reserves no concurrency, which a new AWS account canno
   assert.match(main, /scale_up_reserved_concurrent_executions\s*=\s*-1\b/);
 });
 
-test("the runner image gets gh and jq, which the shared CI uses and Amazon Linux does not ship", () => {
-  assert.match(main, /userdata_post_install\s*=\s*<<-EOT/);
-  assert.match(main, /dnf install -y[^\n]*\bjq\b/);
-  assert.match(main, /dnf install -y[^\n]*\bgh\b/);
-  assert.match(main, /\(\s*\n\s*set -euo pipefail[\s\S]*?\n\s*\)\s*\n\s*EOT/);
+test("runners boot a prebaked Ubuntu 24.04 image from this account and install nothing at boot", () => {
+  assert.match(main, /enable_userdata\s*=\s*false/);
+  assert.match(main, /runner_run_as\s*=\s*"ubuntu"/);
+  assert.match(main, /github-runner-ubuntu-noble-amd64-\*/);
+  assert.match(
+    main,
+    /owners\s*=\s*\[data\.aws_caller_identity\.current\.account_id\]/,
+  );
+  assert.match(main, /device_name\s*=\s*"\/dev\/sda1"/);
+  assert.doesNotMatch(main, /userdata_post_install|dnf /);
+});
+
+test("the image build is pinned to the same module release and bakes in what the shared CI uses", () => {
+  const tools = read("image/ci-tools.pkrvars.hcl");
+  const build = read("image/build.sh");
+  const pin = /\?ref=(v[\d.]+)/.exec(main)?.[1];
+  assert.ok(pin);
+  assert.match(build, new RegExp(`MODULE_TAG="${pin.replace(/\./g, "\\.")}"`));
+  assert.match(tools, /apt-get -y install gh /);
+  // Playwright's headless Chromium failed on the bare image with "libatk-1.0.so.0: cannot open shared object file".
+  assert.match(tools, /libatk1\.0-0t64[\s\S]*?libgbm1[\s\S]*?libnss3/);
+  assert.match(tools, /sha256sum -c/);
+  assert.match(tools, /hostedtoolcache\/node/);
+  const template = read("image/github_agent.ubuntu-noble.pkr.hcl");
+  assert.match(template, /ubuntu-noble-24\.04-amd64-server/);
+  const code = template
+    .split("\n")
+    .filter((line) => !line.startsWith("#"))
+    .join("\n");
+  assert.doesNotMatch(code, /jammy/);
 });
 
 test("runners are spot, ephemeral and idle-free", () => {

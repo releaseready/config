@@ -16,7 +16,20 @@ Cost controls, tightest first:
 
 Expected: about US$1-2 a month for 100 CI runs, about US$0.10-0.25 idle.
 
+## Runner image (build before the first apply, then monthly)
+
+Runners boot a prebaked Ubuntu 24.04 image (the same OS as GitHub's `ubuntu-24.04`) from `image/`, so nothing is installed at
+boot: the GitHub runner, Docker, git, jq, unzip, the AWS CLI, gh, build tools, Python, the shared libraries Chromium needs and
+Node 24 (in the runner tool cache, where `actions/setup-node` looks first) are already on it. `image/build.sh` builds it with
+Packer from the module's own template at the pinned release (`brew install packer`, then
+`AWS_PROFILE=bps-admin infra/ci-runners/image/build.sh`): one t3.medium for about 10-15 minutes (a few US cents). The image's
+snapshot costs roughly US$0.50-1 a month. Rebuild monthly so the runner and packages stay current, then `terraform apply`: the
+launch template picks the newest image named `github-runner-ubuntu-noble-amd64-*` in this account. Playwright's browser
+downloads and each repo's own tools are not baked in: they depend on the versions each repo pins.
+
 ## Apply (once, by the account owner, with the `bps-admin` profile)
+
+0. Build the image (above); `terraform plan` fails until at least one exists.
 
 1. Create a GitHub App for runner registration (separate from the read-only router App): organisation permission
    "Self-hosted runners: read and write", repository permissions "Actions: read", "Metadata: read" and "Checks: read" as

@@ -28,6 +28,8 @@ module "lambdas" {
   ]
 }
 
+data "aws_caller_identity" "current" {}
+
 module "runners" {
   source = "github.com/github-aws-runners/terraform-aws-github-runner?ref=v7.9.0"
 
@@ -54,18 +56,20 @@ module "runners" {
   instance_max_spot_price       = "0.05"
   runners_maximum_count         = var.max_runners
 
-  # The shared CI uses `gh` (changed-files classifier) and `jq`; GitHub-hosted images and the Mac have them, the bare Amazon
-  # Linux 2023 image does not (first spot run failed with exit 127). gh comes from GitHub's own signed dnf repository.
-  # A subshell keeps strict mode from leaking into the module's own user-data script, which is pasted around this snippet.
-  userdata_post_install = <<-EOT
-    (
-      set -euo pipefail
-      dnf install -y --setopt=install_weak_deps=False jq dnf-plugins-core
-      dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
-      dnf install -y --setopt=install_weak_deps=False gh
-      gh --version
-    )
-  EOT
+  # Prebaked image (infra/ci-runners/image): Ubuntu 24.04 like GitHub's own runners, with the runner, gh, jq, Node 24 and
+  # Chromium's libraries already on it. Nothing is installed at boot, so a runner starts in seconds and cannot fail on a package.
+  # Build the image first (image/build.sh); this looks up the newest one by name in this account.
+  enable_userdata               = false
+  enable_runner_binaries_syncer = false
+  runner_run_as                 = "ubuntu"
+  ami = {
+    filter = { name = ["github-runner-ubuntu-noble-amd64-*"], state = ["available"] }
+    owners = [data.aws_caller_identity.current.account_id]
+  }
+  block_device_mappings = [{
+    device_name = "/dev/sda1"
+    volume_size = 40
+  }]
   # -1 removes reserved concurrency: a new AWS account allows only 10 concurrent Lambda executions, and AWS requires 5 to stay
   # unreserved, so the module default of 1 reserved fails to apply. The 2-instance cap is runners_maximum_count above.
   scale_up_reserved_concurrent_executions = -1

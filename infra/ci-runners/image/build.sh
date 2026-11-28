@@ -20,6 +20,13 @@ mkdir -p "$work/module/images/ubuntu-noble"
 cp "$here/github_agent.ubuntu-noble.pkr.hcl" "$work/module/images/ubuntu-noble/"
 cd "$work/module/images/ubuntu-noble"
 
+# Packer's AWS SDK does not read profiles that sign in through the AWS CLI (`aws login`, SSO, MFA/assume-role): it fails with
+# "No valid credential sources found". Hand it short-lived keys exported by the CLI instead (nothing is written to disk).
+if [ -z "${AWS_ACCESS_KEY_ID:-}" ] && [ -n "${AWS_PROFILE:-}" ]; then
+  eval "$(aws configure export-credentials --profile "$AWS_PROFILE" --format env)"
+  unset AWS_PROFILE
+fi
+
 packer init .
 packer build -var-file="$here/ci-tools.pkrvars.hcl" "$@" .
 echo "Built: $(jq -r '.builds[-1].artifact_id' manifest.json)"

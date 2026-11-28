@@ -1,6 +1,113 @@
 {
-  "version": "6.5.0",
-  "baseCommit": "e685c2f449ae0997d2fe6985394beae84925a0b0",
-  "classification": "routine",
-  "rationale": "Fixes the shared pre-commit lint-staged command so a staged file the repo's ESLint config ignores (a generated file) no longer fails the commit. It adds `--no-warn-ignored` to an existing command and adds no ESLint or guardrails rule, so nothing a consumer's code could fail on before or after changes; no consumer measurements are needed."
+  "version": "7.0.0",
+  "baseCommit": "73de85512199cd94d4107d31af47388e046b1a8f",
+  "classification": "stricter-rules",
+  "rationale": "7.0.0 renames the shared commands, config file and ESLint helper from releaseready to buildproveship (RRDPLAT-135) and adds two error-level guardrails, hand-written-xml-parser and legacy-path-name (RRDSCRUM-437). Both new rules were measured on origin/main of every inventory repo; the XML rule has no hits, and the path rule hits are versioned contract files that each consumer lists in contractPaths with a reason.",
+  "evidence": {
+    "baseCommit": "73de85512199cd94d4107d31af47388e046b1a8f",
+    "candidateCommit": "fbb4c91dadcf7dbbd914be123c712fc1c8a5ba80",
+    "newRules": ["hand-written-xml-parser", "legacy-path-name"],
+    "consumers": [
+      {
+        "name": "buildproveship",
+        "commit": "a4dacf4f2d7856947336607b76c7424b7798a509",
+        "command": "Ran the candidate's hand-written-xml-parser and legacy-path-name rules over `git ls-files` of the repo at this commit (a small node script calling guardrails/old-code-rules.js); counts are raw, before any allowlist.",
+        "evidenceUrl": "https://github.com/pamirascent/code-governance/pull/91",
+        "counts": {
+          "hand-written-xml-parser": 0,
+          "legacy-path-name": 3
+        }
+      },
+      {
+        "name": "frontend-ui",
+        "commit": "84fb53e92c2e5db0f84b15b7edb66fdd63d199a3",
+        "command": "Ran the candidate's hand-written-xml-parser and legacy-path-name rules over `git ls-files` of the repo at this commit (a small node script calling guardrails/old-code-rules.js); counts are raw, before any allowlist.",
+        "evidenceUrl": "https://github.com/pamirascent/code-governance/pull/91",
+        "counts": {
+          "hand-written-xml-parser": 0,
+          "legacy-path-name": 2
+        }
+      },
+      {
+        "name": "buildproveship-product-tests",
+        "commit": "e20b441a322a55badd93abc949dd0bb95cf566a1",
+        "command": "Ran the candidate's hand-written-xml-parser and legacy-path-name rules over `git ls-files` of the repo at this commit (a small node script calling guardrails/old-code-rules.js); counts are raw, before any allowlist.",
+        "evidenceUrl": "https://github.com/pamirascent/code-governance/pull/91",
+        "counts": {
+          "hand-written-xml-parser": 0,
+          "legacy-path-name": 16
+        }
+      },
+      {
+        "name": "test-management",
+        "commit": "7d4b76ed58d9ae27b7aa0b8a443def5dc30fe49a",
+        "command": "Ran the candidate's hand-written-xml-parser and legacy-path-name rules over `git ls-files` of the repo at this commit (a small node script calling guardrails/old-code-rules.js); counts are raw, before any allowlist.",
+        "evidenceUrl": "https://github.com/pamirascent/code-governance/pull/91",
+        "counts": {
+          "hand-written-xml-parser": 0,
+          "legacy-path-name": 1
+        }
+      },
+      {
+        "name": "test-data-management",
+        "commit": "2fcc2a3ee7defcc830007b422395f9dc80a86490",
+        "command": "Ran the candidate's hand-written-xml-parser and legacy-path-name rules over `git ls-files` of the repo at this commit (a small node script calling guardrails/old-code-rules.js); counts are raw, before any allowlist.",
+        "evidenceUrl": "https://github.com/pamirascent/code-governance/pull/91",
+        "counts": {
+          "hand-written-xml-parser": 0,
+          "legacy-path-name": 2
+        }
+      },
+      {
+        "name": "universal-api-framework",
+        "commit": "2a1f6ecb9d0cb54bb68a12c41e9777dfc69d4c76",
+        "command": "Ran the candidate's hand-written-xml-parser and legacy-path-name rules over `git ls-files` of the repo at this commit (a small node script calling guardrails/old-code-rules.js); counts are raw, before any allowlist.",
+        "evidenceUrl": "https://github.com/pamirascent/code-governance/pull/91",
+        "counts": {
+          "hand-written-xml-parser": 0,
+          "legacy-path-name": 0
+        }
+      },
+      {
+        "name": "universal-appium-framework",
+        "commit": "f435231ad245271ff993d0ccc74638df0141f12a",
+        "command": "Ran the candidate's hand-written-xml-parser and legacy-path-name rules over `git ls-files` of the repo at this commit (a small node script calling guardrails/old-code-rules.js); counts are raw, before any allowlist.",
+        "evidenceUrl": "https://github.com/pamirascent/code-governance/pull/91",
+        "counts": {
+          "hand-written-xml-parser": 0,
+          "legacy-path-name": 0
+        }
+      },
+      {
+        "name": "universal-playwright-framework",
+        "commit": "67dc6e649ccf56cbb5c27eca34e89220b38b872b",
+        "command": "Ran the candidate's hand-written-xml-parser and legacy-path-name rules over `git ls-files` of the repo at this commit (a small node script calling guardrails/old-code-rules.js); counts are raw, before any allowlist.",
+        "evidenceUrl": "https://github.com/pamirascent/code-governance/pull/91",
+        "counts": {
+          "hand-written-xml-parser": 0,
+          "legacy-path-name": 7
+        }
+      },
+      {
+        "name": "observability",
+        "commit": "20f3e88cb1d57e094d4641d32ca2a2538bd8086d",
+        "command": "Ran the candidate's hand-written-xml-parser and legacy-path-name rules over `git ls-files` of the repo at this commit (a small node script calling guardrails/old-code-rules.js); counts are raw, before any allowlist.",
+        "evidenceUrl": "https://github.com/pamirascent/code-governance/pull/91",
+        "counts": {
+          "hand-written-xml-parser": 0,
+          "legacy-path-name": 1
+        }
+      },
+      {
+        "name": "config",
+        "commit": "fbb4c91dadcf7dbbd914be123c712fc1c8a5ba80",
+        "command": "Ran the candidate's hand-written-xml-parser and legacy-path-name rules over `git ls-files` of the repo at this commit (a small node script calling guardrails/old-code-rules.js); counts are raw, before any allowlist.",
+        "evidenceUrl": "https://github.com/pamirascent/code-governance/pull/91",
+        "counts": {
+          "hand-written-xml-parser": 1,
+          "legacy-path-name": 0
+        }
+      }
+    ]
+  }
 }
